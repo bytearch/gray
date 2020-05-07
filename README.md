@@ -1,14 +1,20 @@
 ## 基于openresty(nginx+lua)轻量级,按流量控制的灰度模块
 ---
-### 背景
+### 1. 背景
    2年前,我主导图片存储系统服务化重构,由原来的单体架构变为分布式架构,并且需要平滑过渡到新系统,所以gray诞生了(https://github.com/iyw/gray)
 最近萌发写一套关于《浅谈千万级系统重构系列》文章,当然少不了灰度发布。review了一下当时写的代码,可能感觉有点乱，打算重新code一下,配置&安装尽可能简单。
-
    * 注:该版本去掉了从redis获取配置,因为实际项目中非特殊场景uri都是可以写到配置中的,无需动态获取 *
-### 安装openresty  
+   ![openresty_gray](./images/openresty_gray.png)
+### 2. 安装openresty  
 [openresty安装教程]: https://github.com/bytearch/blog/blob/master/src/openresty_install.md)
+### 3. 安装gray
+```shell script
+make install
+```
 
-### 配置
+### 4. 配置
+* 例如配置5%流量路由到新系统 并且接口为/test/api
+* 修改lua配置(/usr/local/openresty/lualib/gray/config.lua)
 ```lua
    -- Copyright (C) www.bytearch.com (iyw)
    local _M = {
@@ -24,7 +30,7 @@
    -- 10%  new = 10, base = 100
    -- 100% new = 100, base = 100
    local proxy_percent = {
-       new = 1, base = 1000 
+       new = 5, base = 100 
    }
    
    -- 灰度uri配置 此处也可以从配置中心 | redis| 文件 等中获取
@@ -55,3 +61,22 @@
    _M['new_upstream'] = new_upstream
    return _M
 ```
+### 5 测试
+* 安装测试配置
+```shell script
+make test
+```
+* 启动openresty
+```shell script
+##启动
+sudo openresty -c /usr/local/openresty/nginx/conf/nginx.conf
+##重启
+sudo openresty -s reload
+```
+![测试](./images/gray_test.png)
+### 5 疑问
+* 5%流量,为什么请求4次之后就转换？原因是计数器从1开始计数，这个看看源码就知道了。
+* 请求是连续的可能不利于实际场景,计数器这块也可以改成随机数。或者其他策略
+
+### 6 欢迎关注“浅谈架构” 公众号
+![浅谈架构](./images/bytearch_qrcode.jpg)
