@@ -9,6 +9,8 @@
 [openresty安装教程]: https://github.com/bytearch/blog/blob/master/src/openresty_install.md)
 ### 3. 安装gray
 ```shell script
+git clone https://github.com/bytearch/gray.git
+cd gray
 make install
 ```
 
