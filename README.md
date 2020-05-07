@@ -5,7 +5,9 @@
 最近萌发写一套关于《浅谈千万级系统重构系列》文章,当然少不了灰度发布。review了一下当时写的代码,可能感觉有点乱，打算重新code一下,配置&安装尽可能简单。
 
    * 注:该版本去掉了从redis获取配置,因为实际项目中非特殊场景uri都是可以写到配置中的,无需动态获取 *
-### 安装openresty   
+### 安装openresty  
+[openresty安装教程]: https://github.com/bytearch/blog/blob/master/src/openresty_install.md)
+
 ### 配置
 ```lua
    -- Copyright (C) www.bytearch.com (iyw)
