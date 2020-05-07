@@ -76,9 +76,9 @@ sudo openresty -c /usr/local/openresty/nginx/conf/nginx.conf
 sudo openresty -s reload
 ```
 ![测试](./images/gray_test.png)
-### 5 疑问
+### 6 其它
 * 5%流量,为什么请求4次之后就转换？原因是计数器从1开始计数，这个看看源码就知道了。
 * 请求是连续的可能不利于实际场景,计数器这块也可以改成随机数。或者其他策略
 
-### 6 欢迎关注“浅谈架构” 公众号
+### 7 欢迎关注“浅谈架构” 公众号
 ![浅谈架构](./images/bytearch_qrcode.jpg)
