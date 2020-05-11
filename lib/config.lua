@@ -8,7 +8,7 @@ local proxy_sys_level = 0;
 -- 流量控制级别 可调整 当 proxy_sys_level = 0 时生效
 -- 0.01%  new = 1, base = 10000
 -- 0.1%  new = 1, base = 1000
--- 0.1%  new = 1, base = 100
+-- 1%  new = 1, base = 100
 -- 10%  new = 10, base = 100
 -- 100% new = 100, base = 100
 local proxy_percent = {
