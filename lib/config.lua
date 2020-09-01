@@ -2,7 +2,8 @@
 local _M = {
     _VERSION = "0.0.2"
 }
--- 灰度级别 0: 按流量比转发  1: 100%流量转发到新系统  2: 100%流量转发到老系统
+-- 灰度级别 0: 按流量比转发（按比例进入灰度）    2: 100%流量转发到老系统（纯线上环境）
+-- 3:只有org_no进入灰度
 local proxy_sys_level = 0;
 
 -- 流量控制级别 可调整 当 proxy_sys_level = 0 时生效
@@ -33,6 +34,12 @@ local old_upstream = "proxy_old"
 --new
 local new_upstream = "proxy_new"
 
+
+--org_no
+local gray_org_no_list = {
+    "-1234"
+}
+
 _M['proxy_sys_level'] = proxy_sys_level
 _M['proxy_percent'] = proxy_percent
 _M['white_ip_list'] = white_ip_list
@@ -40,5 +47,6 @@ _M['must_proxy_new_uri_list'] = must_proxy_new_uri_list
 _M['proxy_uri_list'] = proxy_uri_list
 _M['old_upstream'] = old_upstream
 _M['new_upstream'] = new_upstream
+_M['gray_org_no_list'] = gray_org_no_list
 
 return _M

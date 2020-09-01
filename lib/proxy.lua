@@ -35,6 +35,19 @@ local function _checkWhiteReq()
     return false
 end
 
+
+local function _checkOrgNo()
+    local headers = ngx.req.get_headers()
+    local gray_org_no_list = config['gray_org_no_list']
+    local request_org_no = headers["org_no"] or headers["ORG_NO"]
+    for _, v in ipairs(gray_org_no_list) do
+        if v == request_org_no then
+            return true
+        end
+    end
+    return false
+end
+
 local function _getReqCnt()
     req_count = req_count + 1
     return req_count;
@@ -57,9 +70,11 @@ local function _getUpstreamByUriAndCount()
     -- system level
     if proxy_sys_level == 2 then
         return old_upstream
-    elseif proxy_sys_level == 1 then
-        return new_upstream
-    else
+    elseif proxy_sys_level == 3 then
+        if _checkOrgNo() == true then
+            return new_upstream
+        end
+    elseif proxy_sys_level == 0 then
         if _checkWhiteReq() == true then
             return new_upstream
         end
@@ -69,10 +84,9 @@ local function _getUpstreamByUriAndCount()
         end
         local uri = _getRequestUri()
         -- proxy cantain uri
-        local proxy_uri_list = config['proxy_uri_list']
-        if uri and proxy_uri_list[uri] then
+        if uri  then
             local count = _getReqCountByKey(uri)
-            if (count % proxy_percent.base) < proxy_percent.new then
+            if (count % proxy_percent.base) < proxy_percent.new and _checkOrgNo() == true then
                 return new_upstream
             end
         end
