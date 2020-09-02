@@ -39,7 +39,13 @@ end
 local function _checkOrgNo()
     local headers = ngx.req.get_headers()
     local gray_org_no_list = config['gray_org_no_list']
-    local request_org_no = headers["org_no"] or headers["ORG_NO"]
+    local request_org_no = headers["org-no"] or headers["ORG-NO"]
+    --for k, v in pairs(headers) do
+        --         ngx.log(ngx.ERR, "Got header "..k..": "..v..";")
+        --       ngx.say("header  ",k,":",v)
+    --end
+
+    --  ngx.say("request_org_no:",request_org_no)
     for _, v in ipairs(gray_org_no_list) do
         if v == request_org_no then
             return true
@@ -47,6 +53,7 @@ local function _checkOrgNo()
     end
     return false
 end
+
 
 local function _getReqCnt()
     req_count = req_count + 1
@@ -62,34 +69,78 @@ local function _getReqCountByKey(key)
     return uri_req_count_map[key]
 end
 
+
+local function _transferByPercent(old_upstream,new_upstream,proxy_percent)
+    ngx.log(ngx.ERR, "proxy_sys_level 0 ")
+
+    if _checkWhiteReq() == true then
+        return new_upstream
+    end
+    -- write first
+    if _isProxyNewMust() == true then
+        return new_upstream
+    end
+    local uri = _getRequestUri()
+    -- proxy cantain uri
+    ngx.log(ngx.ERR, "uri:"..uri.." ")
+    if uri  then
+        local count = _getReqCountByKey(uri)
+        local percent = count % proxy_percent.base
+        ngx.log(ngx.ERR, "count: "..count.." ")
+        ngx.log(ngx.ERR,"%:"..percent.." ")
+        if percent < proxy_percent.new then
+            return new_upstream
+        end
+    end
+    return old_upstream
+end
+local function _transferByOgrNo(old_upstream,new_upstream)
+    ngx.log(ngx.ERR, "proxy_sys_level 0 ")
+
+    if _checkWhiteReq() == true then
+        return new_upstream
+    end
+    -- write first
+    if _isProxyNewMust() == true then
+        return new_upstream
+    end
+    local uri = _getRequestUri()
+    -- proxy cantain uri
+    ngx.log(ngx.ERR, "uri:"..uri.." ")
+    if uri  then
+        local count = _getReqCountByKey(uri)
+        local percent = count % proxy_percent.base
+        ngx.log(ngx.ERR, "count: "..count.." ")
+        ngx.log(ngx.ERR,"%:"..percent.." ")
+        if percent < proxy_percent.new then
+            return new_upstream
+        end
+    end
+    return old_upstream
+end
+
+
 local function _getUpstreamByUriAndCount()
     local proxy_sys_level = config['proxy_sys_level']
     local old_upstream = config['old_upstream']
     local new_upstream = config['new_upstream']
     local proxy_percent = config['proxy_percent']
     -- system level
-    if proxy_sys_level == 2 then
-        return old_upstream
-    elseif proxy_sys_level == 3 then
+    if proxy_sys_level == 0 then
+        return _transferByPercent(old_upstream,new_upstream,proxy_percent)
+    elseif proxy_sys_level == 1 then
         if _checkOrgNo() == true then
             return new_upstream
+        else
+            return old_upstream
         end
-    elseif proxy_sys_level == 0 then
-        if _checkWhiteReq() == true then
+    elseif proxy_sys_level == 2 then
+        if _checkOrgNo() == true then
             return new_upstream
+        else
+            return _transferByPercent(old_upstream,new_upstream,proxy_percent)
         end
-        -- write first
-        if _isProxyNewMust() == true then
-            return new_upstream
-        end
-        local uri = _getRequestUri()
-        -- proxy cantain uri
-        if uri  then
-            local count = _getReqCountByKey(uri)
-            if (count % proxy_percent.base) < proxy_percent.new and _checkOrgNo() == true then
-                return new_upstream
-            end
-        end
+    elseif proxy_sys_level == 3 then
         return old_upstream
     end
 end
@@ -99,5 +150,3 @@ function _M.init()
     ngx.var.backend = upstream
 end
 return _M
-
-
