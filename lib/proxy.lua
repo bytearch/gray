@@ -1,4 +1,3 @@
--- Copyright (C) www.bytearch.com (iyw)
 local config = require("gray.config")
 
 -- 按流量灰度

@@ -1,4 +1,3 @@
--- Copyright (C) www.bytearch.com (iyw)
 local _M = {
     _VERSION = "0.0.2"
 }
