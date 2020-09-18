@@ -38,13 +38,17 @@ end
 local function _checkOrgNo()
     local headers = ngx.req.get_headers()
     local gray_org_no_list = config['gray_org_no_list']
-    local request_org_no = headers["org-no"] or headers["ORG-NO"]
-    --for k, v in pairs(headers) do
-        --         ngx.log(ngx.ERR, "Got header "..k..": "..v..";")
-        --       ngx.say("header  ",k,":",v)
-    --end
+    local request_org_no = headers["orgCode"] or headers["ORGCODE"] or headers["orgcode"]
+    --dfs上传需要根据body判断(获取body性能低，未来优化)
+    if request_org_no== nil then
+        local body = ngx.req.ngx.req.read_body()
+        request_org_no= body["appId"] or  body["appid"]  or  body["Appid"]
+    end
 
-    --  ngx.say("request_org_no:",request_org_no)
+    for k, v in pairs(headers) do
+       ngx.log(ngx.ERR, "Got header "..k..": "..v..";")
+    end
+
     for _, v in ipairs(gray_org_no_list) do
         if v == request_org_no then
             return true
