@@ -34,26 +34,38 @@ local function _checkWhiteReq()
     return false
 end
 
-
 local function _checkOrgNo()
     local headers = ngx.req.get_headers()
     local gray_org_no_list = config['gray_org_no_list']
     local request_org_no = headers["orgCode"] or headers["ORGCODE"] or headers["orgcode"]
+
+    for k, v in pairs(headers) do
+        ngx.log(ngx.ERR, "Got header "..k..": "..v..";")
+    end
+
+    --前端从cookie取orgCode
+    if request_org_no== nil then
+        local cookie_orgCode = ngx.var.cookie_orgCode or ngx.var.cookie_orgcode
+        request_org_no = cookie_orgCode
+    end
+
     --dfs上传需要根据body判断(获取body性能低，未来优化)
     if request_org_no== nil then
-        local body = ngx.req.ngx.req.read_body()
+        ngx.req.read_body()
+        local body,err = ngx.req.get_post_args(10)
+        if body == nil then
+            return false
+        end
         request_org_no= body["appId"] or  body["appid"]  or  body["Appid"]
     end
 
-    for k, v in pairs(headers) do
-       ngx.log(ngx.ERR, "Got header "..k..": "..v..";")
-    end
-
+    --判断是否符合配置
     for _, v in ipairs(gray_org_no_list) do
         if v == request_org_no then
             return true
         end
     end
+
     return false
 end
 
@@ -150,6 +162,7 @@ end
 
 function _M.init()
     local upstream = _getUpstreamByUriAndCount();
+    ngx.header['backend-host']=upstream
     ngx.var.backend = upstream
 end
 return _M
