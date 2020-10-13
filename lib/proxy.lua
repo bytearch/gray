@@ -39,9 +39,9 @@ local function _checkOrgNo()
     local gray_org_no_list = config['gray_org_no_list']
     local request_org_no = headers["orgCode"] or headers["ORGCODE"] or headers["orgcode"]
 
-    for k, v in pairs(headers) do
-        ngx.log(ngx.ERR, "Got header "..k..": "..v..";")
-    end
+--   for k, v in pairs(headers) do
+--        ngx.log(ngx.ERR, "Got header "..k..": "..v..";")
+--    end
 
     --前端从cookie取orgCode
     if request_org_no== nil then
@@ -86,7 +86,7 @@ end
 
 
 local function _transferByPercent(old_upstream,new_upstream,proxy_percent)
-    ngx.log(ngx.ERR, "proxy_sys_level 0 ")
+--    ngx.log(ngx.ERR, "proxy_sys_level 0 ")
 
     if _checkWhiteReq() == true then
         return new_upstream
@@ -97,7 +97,7 @@ local function _transferByPercent(old_upstream,new_upstream,proxy_percent)
     end
     local uri = _getRequestUri()
     -- proxy cantain uri
-    ngx.log(ngx.ERR, "uri:"..uri.." ")
+--    ngx.log(ngx.ERR, "uri:"..uri.." ")
     if uri  then
         local count = _getReqCountByKey(uri)
         local percent = count % proxy_percent.base
