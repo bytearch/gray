@@ -1,4 +1,6 @@
 local config = require("gray.config")
+local Multipart = require("gray.multipart")
+
 
 -- 按流量灰度
 local _M = {
@@ -34,6 +36,17 @@ local function _checkWhiteReq()
     return false
 end
 
+
+function read_from_file(file_name)
+    local f = assert(io.open(file_name, "r"))
+    local string = f:read("*all")
+    f:close()
+    return string
+end
+
+
+
+
 local function _checkOrgNo()
     local headers = ngx.req.get_headers()
     local gray_org_no_list = config['gray_org_no_list']
@@ -49,14 +62,50 @@ local function _checkOrgNo()
         request_org_no = cookie_orgCode
     end
 
-    --dfs上传需要根据body判断(获取body性能低，未来优化)
+    --dfs上传需要根据body判断,针对普通的appId(获取body性能低，未来优化)
     if request_org_no== nil then
         ngx.req.read_body()
         local body,err = ngx.req.get_post_args(10)
-        if body == nil then
-            return false
+        if body ~= nil then
+            request_org_no= body["appId"] or  body["appid"]  or  body["Appid"]
         end
-        request_org_no= body["appId"] or  body["appid"]  or  body["Appid"]
+    end
+
+    --dfs上传需要根据body判断,针对Multipart里带的appId (获取body性能低，未来优化)
+    if request_org_no== nil then
+        local body = ngx.req.get_body_data()
+        if body == nil then
+            --这里返回的是文件路径，需要读取文件内容
+            local body_file = ngx.req.get_body_file()
+            body = read_from_file(body_file)
+        end
+        local content_types = headers["Content-Type"]
+
+        --ngx.log(ngx.INFO, "body:"..body.." ")
+        ngx.log(ngx.INFO, "content-type:"..content_types.." ")
+
+        -- Initialize with a body
+        local multipart_data = Multipart(body,content_types)
+        if multipart_data ~= nil then
+
+            -- Get a multipart/form-data representation of the object
+            --local bodyString = multipart_data:tostring()
+            --ngx.log(ngx.INFO, "multipart_data body string: "..bodyString.."")
+
+            -- Get all the parameters in a Lua table, in the form of {param_name = param_value}
+            --local t = multipart_data:get_all()
+            --for key, value in pairs(t) do
+            --     ngx.log(ngx.INFO, "multipart_data: "..key..": "..value..";")
+            --end
+
+            -- Reading parameters
+            local parameter = multipart_data:get("appId")
+            ngx.log(ngx.INFO, "appId.value:"..parameter.value.." ")
+
+            if parameter ~= nil then
+                request_org_no= parameter.value
+            end
+        end
     end
 
     --判断是否符合配置
@@ -164,5 +213,6 @@ function _M.init()
     local upstream = _getUpstreamByUriAndCount();
     ngx.header['backend-host']=upstream
     ngx.var.backend = upstream
+    ngx.log(ngx.INFO, "backend-host:"..ngx.var.backend.." ")
 end
 return _M

@@ -229,7 +229,7 @@ function MultipartData.new(data, content_type)
 
     if content_type then
         local boundary = match(content_type, ";%s*boundary=(%S+)")
-        ngx.log(ngx.INFO, "boundary.value:"..boundary.."**")
+
         if boundary then
             if (sub(boundary, 1, 1) == '"' and sub(boundary, -1)  == '"') or
                     (sub(boundary, 1, 1) == "'" and sub(boundary, -1)  == "'") then
@@ -237,13 +237,12 @@ function MultipartData.new(data, content_type)
             end
 
             if boundary ~= "" then
+                boundary = string.gsub(boundary,";","",1)
                 instance._boundary = boundary
             end
         end
     end
-
-    ngx.log(ngx.INFO, "instance._boundary.value:"..instance._boundary.."**")
-    ngx.log(ngx.INFO, "data.value:"..data.." ")
+    ngx.log(ngx.INFO, "instance.boundary.value:"..instance._boundary.."**")
     instance._data = decode(data or "", instance._boundary)
 
     return instance

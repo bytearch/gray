@@ -82,3 +82,9 @@ sudo openresty -s reload
 
 ### 7 欢迎关注“浅谈架构” 公众号
 ![浅谈架构](./images/bytearch_qrcode.jpg)
+
+
+
+https://www.jianshu.com/p/bf7f7bfb0639
+http://blog.zot24.com/lua-formdata-type/
+
